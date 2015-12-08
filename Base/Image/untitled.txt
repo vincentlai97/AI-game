@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="left-down" width="96" height="25" tilewidth="16" tileheight="16" nextobjectid="1">
+ <tileset firstgid="1" name="Basic" tilewidth="16" tileheight="16">
+  <image source="../../../../../../Downloads/ig-maker-free-resources-pack/Image/Jumping action/Simple_Heartwarming_a cat/Basic.png" width="256" height="256"/>
+ </tileset>
+ <layer name="Tile Layer 1" width="96" height="25">
+  <data encoding="base64" compression="zlib">
+   eJztlwEKwjAMRe0RdCfQnUA9gbv/oWxggxBqF0fT33Z5EAZug/QRkyxcHCQBncDJcf9Y3D8W94/F/WNx/1jcPxb3j8X9Y3H/WM7q/xrjpojJOI/R/dP5Ntfc5T3GQxFzhfxGg5+J3KdcPmO8FPGumGsv5HoH1XhgwevcupaP0KP/XO8gx9w/r/MStVx6brTun84rz5LrHeQ4iChJ6bnRkv9fc/LfvmHpv/TcQPrnuwkFrx/+25G+beHeAmSOfDdB7oBIkP5b2QGR9PAfHQk5m2r4lzub9Td9K+ztqpPiGe1+m3Msd7aR+zlnb1edFc/k3v3EWNZryvF2P3VvEe+PeNX4/wIzdivw
+  </data>
+ </layer>
+</map>

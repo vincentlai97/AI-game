@@ -1,0 +1,111 @@
+#version 330 core
+
+out vec4 color;
+
+struct Light {
+	int type;
+	vec3 position;
+	vec3 color;
+	float power;
+	float kC;
+	float kL;
+	float kQ;
+	vec3 direction;
+	float cosCutoff;
+	float cosInner;
+	float exponent;
+	float radius;
+};
+
+const int MAX_LIGHTS = 8;
+
+uniform vec2 screenSize;
+uniform sampler2D positionMap;
+uniform sampler2D normalMap;
+uniform sampler2D ambientMap;
+uniform sampler2D diffuseMap;
+uniform sampler2D specularMap;
+uniform mat4 V;
+uniform bool lightEnabled;
+uniform Light lights[MAX_LIGHTS];
+
+void main()
+{
+   	vec2 texCoord = gl_FragCoord.xy / screenSize;
+   	vec3 vertexPosition_cameraspace = texture(positionMap, texCoord).xyz;
+   	vec3 vertexNormal_cameraspace = texture(normalMap, texCoord).xyz;
+   	vec3 ambient = texture(ambientMap, texCoord).xyz;
+   	vec3 diffuse = texture(diffuseMap, texCoord).xyz;
+   	vec3 specular = texture(specularMap, texCoord).xyz;
+   	float shininess = texture(specularMap, texCoord).w;
+
+	if (lightEnabled)
+	{
+		color.xyz = ambient;
+		
+		vec3 N = normalize(vertexNormal_cameraspace);	 //Vertex Normal
+		vec3 E = normalize(-vertexPosition_cameraspace); //Eye Direction
+
+		for (int count = 0; count < 1; ++count)
+		{
+			//Diffuse Color
+			vec3 diffuseColor = vec3(0, 0, 0);
+			//Specular Color
+			vec3 specularColor = vec3(0, 0, 0);
+
+			if (lights[count].type >= 0 && lights[count].type < 3 && lights[count].power > 0)
+			{
+				//Calculate direction of light to vertex
+				vec3 lightPosition_cameraspace;
+				vec3 lightDirection_cameraspace;
+				switch (lights[count].type)
+				{
+				case 0:
+				case 2:
+					lightPosition_cameraspace = (V * vec4(lights[count].position, 1)).xyz;
+					lightDirection_cameraspace = lightPosition_cameraspace - vertexPosition_cameraspace;
+					break;
+				case 1:
+					lightDirection_cameraspace = (V * vec4(lights[count].position, 1)).xyz;
+				}
+
+				//Calculate attenuation
+				float attenuation;
+				switch (lights[count].type)
+				{
+				case 0:
+				case 2:
+					float distance = length( lightDirection_cameraspace );
+					attenuation = 1 / max(1, lights[count].kC + lights[count].kL * distance + lights[count].kQ * distance * distance);
+					break;
+				case 1:
+					attenuation = 1;
+					break;
+				}
+				
+				//Calculate spotlight effect
+				float spotlightEffect = 1;
+				if (lights[count].type == 2)
+				{
+					vec3 S = normalize(-lights[count].direction);
+					vec3 L = normalize(lightDirection_cameraspace);
+					float cosDirection = dot(L, S);
+					spotlightEffect = smoothstep(lights[count].cosCutoff, lights[count].cosInner, cosDirection);
+				}
+
+				vec3 L = normalize(lightDirection_cameraspace);
+				float cosTheta = clamp(dot( N, L ), 0, 1);
+				
+				vec3 R = reflect(-L, N);
+				float cosAlpha = clamp(dot( E, R ), 0, 1);
+
+				diffuseColor += diffuse * lights[count].color * lights[count].power * cosTheta * attenuation;
+				specularColor += specular * lights[count].color * lights[count].power * pow(cosAlpha, 5) * attenuation * spotlightEffect;
+			}
+			color.xyz += diffuseColor + specularColor;
+		}
+	}
+	else color.xyz = ambient;
+
+	color.w = 1;
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="left-down" width="32" height="24" tilewidth="64" tileheight="64" nextobjectid="1">
+ <tileset firstgid="1" name="Tile_dungeon2" tilewidth="64" tileheight="64">
+  <image source="../../../../../../Downloads/ig-maker-free-resources-pack/Image/Action RPG/Hd/Tile_dungeon2.png" width="2048" height="2048"/>
+ </tileset>
+ <layer name="Tile Layer 1" width="32" height="24">
+  <data encoding="base64" compression="zlib">
+   eJztlk1OwzAQhe0jUCTgGqWLsqFwjBaJn2MAEtArwAY2FK5QkIBrABJwjRaVsuRFeJTHdByVKLFYYOlTovjNPDvxxB4558bgw2AKPkHLOzcq0JVBci8gdwMsGSyDFf/tX6Qrg+RuglVgtTaerwX/U3AW0ZVp58h1UbP/OvQdcAs2wCbFp/Dfhn4HPINdsGf4D8GNGp+M+x48BH/R6bnwHDUcr+cp/o/gSY1Pxv0K3kK86PRceI4ajo/5t4x+fu8Wv9FaMewvdX2C+37oP8L12Oe1+q6wtNIX+2dwDPtLXV+B69B/ievA57W6qLC00hf7Z3AM+xet/zKNv0dR7rr8eV39+//MPUnw/bl29Jq3xlm1P9eOXvNZk3dQl/+8LbX/RHnU5S/70Z2f3XNT+Mt+9OJn99wU/n+5/i0dnyuqIHZmyejCtwe2XK7jc0UVxM4sGfvwPQCHLtd9AU6NyNo=
+  </data>
+ </layer>
+ <layer name="Tile Layer 2" width="32" height="24">
+  <data encoding="base64" compression="zlib">
+   eJztjjENACAQxO5lgAsEgxPwBRPv4SZCm3RuJQCAv9lpNz1Gf6bNdNCnT5/+g/0S0pJnDWPgUy5UJUQH
+  </data>
+ </layer>
+</map>

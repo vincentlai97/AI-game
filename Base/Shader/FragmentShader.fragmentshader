@@ -1,0 +1,133 @@
+#version 330 core
+
+//Input data
+in vec3 vertexPosition_cameraspace;
+in vec3 fragmentColor;
+in vec3 vertexNormal_cameraspace;
+in vec2 fragmentTextureCoord;
+
+//Output data
+out vec4 color;
+
+struct Light {
+	int type; //0 = point light, 1 = directional light, 2 = spotlight
+	vec3 position;
+	vec3 color;
+	float power;
+	float kC;
+	float kL;
+	float kQ;
+	vec3 direction;
+	float cosCutoff;
+	float cosInner;
+	float exponent;
+};
+
+struct Material {
+	vec3 kAmbient;
+	vec3 kDiffuse;
+	vec3 kSpecular;
+	float kShininess;
+};
+
+const int MAX_TEXTURES = 8;
+const int MAX_LIGHTS = 8;
+
+uniform mat4 V;
+uniform bool textureEnabled[MAX_TEXTURES];
+uniform sampler2D texture[MAX_TEXTURES];
+uniform bool lightEnabled;
+uniform Light lights[MAX_LIGHTS];
+uniform Material material;
+
+void main()
+{
+	//Get material color
+	vec4 materialColor = vec4(0, 0, 0, 0);
+	int textureCount = 0;
+	for (int i = 0; i < MAX_TEXTURES; ++i)
+	{
+		if(textureEnabled[i])
+		{
+			materialColor += texture2D(texture[i], fragmentTextureCoord);
+			++textureCount;
+		}		
+	}
+	if (textureCount > 0)
+		materialColor /= textureCount;
+	else
+		materialColor = vec4(fragmentColor, 1);
+
+	if (lightEnabled)
+	{
+		//Ambient Color
+		vec4 ambientColor = materialColor * vec4(material.kAmbient, 1);
+		color = ambientColor;
+	
+		vec3 N = normalize(vertexNormal_cameraspace);	 //Vertex Normal
+		vec3 E = normalize(-vertexPosition_cameraspace); //Eye Direction
+
+		for (int count = 0; count < MAX_LIGHTS; ++count)
+		{
+			//Diffuse Color
+			vec4 diffuseColor = vec4(0, 0, 0, 0);
+			//Specular Color
+			vec4 specularColor = vec4(0, 0, 0, 0);
+
+			if (lights[count].type >= 0 && lights[count].type < 3 && lights[count].power > 0)
+			{
+				//Calculate direction of light to vertex
+				vec3 lightPosition_cameraspace;
+				vec3 lightDirection_cameraspace;
+				switch (lights[count].type)
+				{
+				case 0:
+				case 2:
+					lightPosition_cameraspace = (V * vec4(lights[count].position, 1)).xyz;
+					lightDirection_cameraspace = lightPosition_cameraspace - vertexPosition_cameraspace;
+					break;
+				case 1:
+					lightDirection_cameraspace = (V * -vec4(lights[count].direction, 0)).xyz;
+				}
+
+				//Calculate attenuation
+				float attenuation;
+				switch (lights[count].type)
+				{
+				case 0:
+				case 2:
+					float distance = length( lightDirection_cameraspace );
+					attenuation = 1 / max(1, lights[count].kC + lights[count].kL * distance + lights[count].kQ * distance * distance);
+					break;
+				case 1:
+					attenuation = 1;
+					break;
+				}
+				
+				//Calculate spotlight effect
+				float spotlightEffect = 1;
+				if (lights[count].type == 2)
+				{
+					vec3 S = normalize(-lights[count].direction);
+					vec3 L = normalize(lightDirection_cameraspace);
+					float cosDirection = dot(L, S);
+					spotlightEffect = smoothstep(lights[count].cosCutoff, lights[count].cosInner, cosDirection);
+				}
+
+				vec3 L = normalize(lightDirection_cameraspace);
+				float cosTheta = clamp(dot( N, L ), 0, 1);
+				
+				vec3 R = reflect(-L, N);
+				float cosAlpha = clamp(dot( E, R ), 0, 1);
+
+				diffuseColor += materialColor * vec4(material.kDiffuse, 1) * vec4(lights[count].color, 1) * lights[count].power * cosTheta * attenuation * spotlightEffect;
+				specularColor += vec4(material.kSpecular, 1) * vec4(lights[count].color, 1) * lights[count].power * pow(cosAlpha, material.kShininess) * attenuation * spotlightEffect;
+				color += diffuseColor + specularColor;
+			}
+		}
+	}
+	else
+	{
+		color = materialColor;
+	}
+}

@@ -1,0 +1,30 @@
+#version 330 core
+
+layout(location = 0) in vec3 vertexPosition_modelspace;
+layout(location = 1) in vec3 vertexColor;
+layout(location = 2) in vec3 vertexNormal_modelspace;
+layout(location = 3) in vec2 vertexTextureCoord;
+
+out vec3 vertexPosition_cameraspace;
+out vec3 fragmentColor;
+out vec3 vertexNormal_cameraspace;
+out vec2 fragmentTextureCoord;
+
+uniform mat4 MVP;
+uniform mat4 MV;
+uniform mat4 MV_inverse_transpose;
+
+void main() {
+	//Vector position of the vertex in clip space
+	gl_Position =  MVP * vec4(vertexPosition_modelspace, 1);
+
+	//Vector position in camera space
+	vertexPosition_cameraspace = ( MV * vec4(vertexPosition_modelspace, 1) ).xyz;
+	//Vector normal in camera space
+	vertexNormal_cameraspace = ( MV_inverse_transpose * vec4(vertexNormal_modelspace, 0) ).xyz;
+	
+	//The color of each vertex will be interpolated to produce the color of each fragment
+	fragmentColor = vertexColor;
+	//The texCoord of each vertex will be interpolated to produce the texCoord of each fragment
+	fragmentTextureCoord = vertexTextureCoord;
+}
