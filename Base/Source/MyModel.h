@@ -36,6 +36,11 @@ public:
 
 protected:
 	std::map<PLAYER_COMMANDS, bool> player_commands;
+
+	void playerAttackFSM(double dt);
+	void aiAttackFSM(double dt);
+	void playerMoveFSM(double dt);
+	void aiMoveFSM(double dt);
 };
 
 #define NUM_PLAYER_COMMANDS 5U

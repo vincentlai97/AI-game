@@ -12,7 +12,7 @@
 
 #include "MyModel.h"
 
-#define VIEW_DIMENSIONS 2
+#define VIEW_DIMENSIONS 3
 
 bool View::createWindow(const int& window_width, const int& window_height, const char* window_title, GLFWmonitor* monitor, GLFWwindow* share)
 {
