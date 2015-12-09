@@ -196,6 +196,9 @@ void MyModel::Update(double dt)
 	//Controls leg movement
 	playerMoveFSM(dt);
 
+	//Controls Ai leg movement
+	aiMoveFSM(dt);
+
 	for (int iter = (int)COMMANDS::MOVE_FORWARD; iter <= (int)COMMANDS::MOVE_RIGHT; ++iter)
 	if (commands[iter])
 		(camera.*(cameraMovement[iter - (int)COMMANDS::MOVE_FORWARD]))(dt * CAMERA_SPEED);
@@ -406,6 +409,85 @@ void MyModel::playerMoveFSM(double dt)
 	}
 }
 
+float distancebetween;
+bool close = false;
+bool idlemovement = true;
+static int chance = 25;
+
 void MyModel::aiMoveFSM(double dt)
 {
-}
+	SceneNode *AiTorsoNode = dynamic_cast<SceneNode*>(m_worldNode->GetChildNode("aibody"));
+	SceneNode *torsoNode = dynamic_cast<SceneNode*>(m_worldNode->GetChildNode("body"));
+	SceneNode *AibodyNode = dynamic_cast<SceneNode*>(m_worldNode->GetChildNode("aibody"));
+	SceneNode *AithighNode = dynamic_cast<SceneNode*>(m_worldNode->GetChildNode("aibody")->GetChildNode("left thigh"));
+	SceneNode *AilegNode = dynamic_cast<SceneNode*>(m_worldNode->GetChildNode("aibody")->GetChildNode("left thigh")->GetChildNode("left leg"));
+	
+	//Case
+	switch (ai_leg_state)
+	{
+	case LEG_STATE::IDLE:
+			{
+				//Get the distance between the player and the AI
+				distancebetween = AiTorsoNode->GetTransform()[3][0] - torsoNode->GetTransform()[3][0];
+
+				//Changing of boolean
+				if (distancebetween < 1000.f)
+				{
+					
+					close = true;
+					idlemovement = false;
+
+					if (rand() % 100 <= chance)
+					{
+						ai_leg_state = LEG_STATE::RETRACTING;
+						ai_legTimer = 0.f;
+					}
+				}
+				else if (distancebetween > 1500.f)
+				{
+					close = false;
+					idlemovement = false;
+
+					if (rand() % 100 <= chance)
+					{
+						ai_leg_state = LEG_STATE::RETRACTING;
+						ai_legTimer = 0.f;
+					}
+				}
+				else
+				{
+					idlemovement = true;
+				}
+			}
+		break;
+	case LEG_STATE::RETRACTING:
+		ai_legTimer += dt;
+		if (ai_legTimer < legRetractingTime)
+		{
+			AithighNode->Rotate(dt / legRetractingTime * thighMoveAngle, glm::vec3(1, 0, 0));
+			AilegNode->Rotate(dt / legRetractingTime * legMoveAngle, glm::vec3(1, 0, 0));
+			if (close == true && idlemovement == false)
+				AibodyNode->Translate(glm::vec3(0, 0, -3 * dt));
+		}
+		else
+		{
+			ai_leg_state = LEG_STATE::STRETCHING;
+			ai_legTimer = 0.f;
+		}
+		break;
+	case LEG_STATE::STRETCHING:
+		ai_legTimer += dt;
+		if (ai_legTimer < legStretchingTime)
+		{
+			AithighNode->Rotate(-dt / legRetractingTime * thighMoveAngle, glm::vec3(1, 0, 0));
+			AilegNode->Rotate(-dt / legRetractingTime * legMoveAngle, glm::vec3(1, 0, 0));
+			if (close == false && idlemovement == false) AibodyNode->Translate(glm::vec3(0, 0, 3 * dt));
+		}
+		else
+		{
+			ai_leg_state = LEG_STATE::IDLE;
+			ai_legTimer = 0.f;
+		}
+		break;
+	}
+}	

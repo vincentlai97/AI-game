@@ -41,6 +41,7 @@ protected:
 	void aiAttackFSM(double dt);
 	void playerMoveFSM(double dt);
 	void aiMoveFSM(double dt);
+	
 };
 
 #define NUM_PLAYER_COMMANDS 5U
