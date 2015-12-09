@@ -46,14 +46,16 @@ void MyModel::Init()
 {
 	camera.Init(Vector3(0, 5, 5), Vector3(), Vector3(0, 1, 0));
 
-	m_worldNode->SetMesh(MeshBuilder::GenerateQuad("background", Color(0, 0, 0.5f), 2000.f));
+	m_worldNode->SetMesh(MeshBuilder::GenerateQuad("background", Color(0, 0, 0.5f), 1.f));
+	m_worldNode->GetMesh()->textureID[0] = LoadTGA("Image//background.tga");
+	m_worldNode->Scale(glm::vec3(32, 18, 1));
 
 	//Body
 	node = new SceneNode();
 	mesh = MeshBuilder::GenerateOBJ("body", "Obj//Mannequin Body.obj");
 	mesh->textureID[0] = LoadTGA("Obj//dummy_wood.tga");
 	node->SetMesh(mesh);
-	node->Translate(glm::vec3(0, 3, 2));
+	node->Translate(glm::vec3(-6, -4, 2));
 	node->Rotate(90, glm::vec3(0, 1, 0));
 	m_worldNode->AddChild("body", node);
 	
@@ -251,7 +253,7 @@ void MyModel::Update(double dt)
 		{
 			thighNode->Rotate(dt / legRetractingTime * thighMoveAngle, glm::vec3(1, 0, 0));
 			legNode->Rotate(dt / legRetractingTime * legMoveAngle, glm::vec3(1, 0, 0));
-			if (moveDirection == PLAYER_COMMANDS::MOVE_BACKWARD) bodyNode->Translate(glm::vec3(0, 0, -dt));
+			if (moveDirection == PLAYER_COMMANDS::MOVE_BACKWARD) bodyNode->Translate(glm::vec3(0, 0, -3 * dt));
 		}
 		else
 		{
@@ -265,7 +267,7 @@ void MyModel::Update(double dt)
 		{
 			thighNode->Rotate(-dt / legRetractingTime * thighMoveAngle, glm::vec3(1, 0, 0));
 			legNode->Rotate(-dt / legRetractingTime * legMoveAngle, glm::vec3(1, 0, 0));
-			if (moveDirection == PLAYER_COMMANDS::MOVE_FORWARD) bodyNode->Translate(glm::vec3(0, 0, dt));
+			if (moveDirection == PLAYER_COMMANDS::MOVE_FORWARD) bodyNode->Translate(glm::vec3(0, 0, 3 * dt));
 		}
 		else
 		{

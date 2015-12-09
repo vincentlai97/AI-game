@@ -44,7 +44,7 @@ void Controller::Init()
 	//Initialise GLFW
 	if (!glfwInit()) exit(EXIT_FAILURE);
 
-	view->createWindow(1024, 800, "Scene");
+	view->createWindow(1280, 720, "Scene");
 
 	m_dElapsedTime = 0.f;
 }
