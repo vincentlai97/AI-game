@@ -38,7 +38,7 @@ void main() {
 	int textureCount = 0;
 	for (int i = 0; i < MAX_TEXTURES; ++i)
 	{
-		if(textureEnabled[i])
+		//if(textureEnabled[i])
 		{
 			materialColor += texture2D(texture[i], fragmentTextureCoord);
 			++textureCount;

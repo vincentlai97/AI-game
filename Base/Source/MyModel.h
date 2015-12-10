@@ -22,6 +22,9 @@ public:
 		ATTACK_UP,
 		ATTACK_MID,
 		ATTACK_DOWN,
+		BLOCK_UP,
+		BLOCK_MID,
+		BLOCK_DOWN,
 		MOVE_FORWARD,
 		MOVE_BACKWARD,
 	};
@@ -39,16 +42,20 @@ protected:
 
 	void playerAttackFSM(double dt);
 	void aiAttackFSM(double dt);
+	void playerBlockFSM(double dt);
 	void playerMoveFSM(double dt);
 	void aiMoveFSM(double dt);
 	
 };
 
-#define NUM_PLAYER_COMMANDS 5U
+#define NUM_PLAYER_COMMANDS 8U
 const std::array<MyModel::PLAYER_COMMANDS, NUM_PLAYER_COMMANDS> all_player_commands = {
 	MyModel::PLAYER_COMMANDS::ATTACK_UP,
 	MyModel::PLAYER_COMMANDS::ATTACK_MID,
 	MyModel::PLAYER_COMMANDS::ATTACK_DOWN,
+	MyModel::PLAYER_COMMANDS::BLOCK_UP,
+	MyModel::PLAYER_COMMANDS::BLOCK_MID,
+	MyModel::PLAYER_COMMANDS::BLOCK_DOWN,
 	MyModel::PLAYER_COMMANDS::MOVE_FORWARD,
 	MyModel::PLAYER_COMMANDS::MOVE_BACKWARD };
 
@@ -57,6 +64,12 @@ const std::array<MyModel::PLAYER_COMMANDS, NUM_PLAYER_COMMANDS_ATTACK> all_playe
 	MyModel::PLAYER_COMMANDS::ATTACK_UP,
 	MyModel::PLAYER_COMMANDS::ATTACK_MID,
 	MyModel::PLAYER_COMMANDS::ATTACK_DOWN };
+
+#define NUM_PLAYER_COMMANDS_BLOCK 3U
+const std::array<MyModel::PLAYER_COMMANDS, NUM_PLAYER_COMMANDS_BLOCK> all_player_commands_block = {
+	MyModel::PLAYER_COMMANDS::BLOCK_UP,
+	MyModel::PLAYER_COMMANDS::BLOCK_MID,
+	MyModel::PLAYER_COMMANDS::BLOCK_DOWN };
 
 #define NUM_PLAYER_COMMANDS_MOVE 2U
 const std::array<MyModel::PLAYER_COMMANDS, NUM_PLAYER_COMMANDS_MOVE> all_player_commands_move = {

@@ -35,6 +35,13 @@ float armTimer, ai_armTimer;
 
 float attackBuffer = 0.f; //Attack Buffer for AI
 
+enum class BLOCK_STATE {
+	IDLE,
+	BLOCK,
+} block_state, ai_block_state;
+float armAngle, ai_armAngle;
+float swordAngle, ai_swordAngle;
+
 enum class LEG_STATE {
 	IDLE,
 	RETRACTING,
@@ -70,7 +77,7 @@ void MyModel::Init()
 	//Arm
 	node = new SceneNode();
 	mesh = MeshBuilder::GenerateOBJ("arm", "Obj//Arm.obj");
-	mesh->textureID[0] = LoadTGA("Image//stick.tga");
+	mesh->textureID[0] = LoadTGA("Obj//dummy_wood.tga");
 	node->SetMesh(mesh);
 	node->Translate(glm::vec3(-1.f, 2.5f, 0.3f));
 	node->Rotate(-10, glm::vec3(0, 0, 1));
@@ -99,10 +106,22 @@ void MyModel::Init()
 	node = new SceneNode(*node);
 	m_worldNode->GetChildNode("aibody")->GetChildNode("arm")->AddChild("forearm", node);
 
+	//Sword
+	node = new SceneNode();
+	mesh = MeshBuilder::GenerateOBJ("arm", "Obj//rapier.obj");
+	mesh->textureID[0] = LoadTGA("Obj//dummy_wood.tga");
+	node->SetMesh(mesh);
+	node->Translate(glm::vec3(0, 2, 0));
+	node->Scale(glm::vec3(1, 1.3, 1));
+	m_worldNode->GetChildNode("body")->GetChildNode("arm")->GetChildNode("forearm")->AddChild("sword", node);
+
+	node = new SceneNode(*node);
+	m_worldNode->GetChildNode("aibody")->GetChildNode("arm")->GetChildNode("forearm")->AddChild("sword", node);
+
 	//Right Thigh
 	node = new SceneNode();
 	mesh = MeshBuilder::GenerateOBJ("right thigh", "Obj//Right Thigh.obj");
-	mesh->textureID[0] = LoadTGA("Image//stick.tga");
+	mesh->textureID[0] = LoadTGA("Obj//dummy_wood.tga");
 	node->SetMesh(mesh);
 	node->Translate(glm::vec3(-0.4f, 0, 0.1));
 	node->Rotate(-50, glm::vec3(1, 0, 0));
@@ -128,7 +147,7 @@ void MyModel::Init()
 	//Left Thigh
 	node = new SceneNode();
 	mesh = MeshBuilder::GenerateOBJ("left thigh", "Obj//Left Thigh.obj");
-	mesh->textureID[0] = LoadTGA("Image//stick.tga");
+	mesh->textureID[0] = LoadTGA("Obj//dummy_wood.tga");
 	node->SetMesh(mesh);
 	node->Translate(glm::vec3(0.4f, 0, 0.1));
 	node->Rotate(35, glm::vec3(1, 0, 0));
@@ -156,6 +175,14 @@ void MyModel::Init()
 
 	ai_arm_state = ARM_STATE::IDLE;
 	ai_armTimer = 0.f;
+
+	block_state = BLOCK_STATE::IDLE;
+	armAngle = 0.f;
+	swordAngle = 0.f;
+
+	ai_block_state = BLOCK_STATE::IDLE;
+	ai_armAngle = 0.f;
+	ai_swordAngle = 0.f;
 
 	leg_state = LEG_STATE::IDLE;
 	legTimer = 0.f;
@@ -188,10 +215,15 @@ void MyModel::Update(double dt)
 	srand(time(NULL));
 
 	//Controls arm movement
-	playerAttackFSM(dt);
+	if (armAngle == 0.f && swordAngle == 0.f)
+		playerAttackFSM(dt);
 
 	//Controls AI arm movement
 	aiAttackFSM(dt);
+
+	//Controls block
+	if (arm_state == ARM_STATE::IDLE)
+		playerBlockFSM(dt);
 
 	//Controls leg movement
 	playerMoveFSM(dt);
@@ -357,6 +389,104 @@ void MyModel::aiAttackFSM(double dt)
 	}
 }
 
+const float armBlockUpAngle = -10, armBlockMidAngle = 20, armBlockDownAngle = 60, swordBlockAngle = 90.f;
+MyModel::PLAYER_COMMANDS blockTarget;
+const float blockTime = 0.2f;
+
+void MyModel::playerBlockFSM(double dt)
+{
+	//Get Nodes
+	SceneNode *armNode = dynamic_cast<SceneNode*>(m_worldNode->GetChildNode("body")->GetChildNode("arm"));
+	SceneNode *forearmNode = dynamic_cast<SceneNode*>(m_worldNode->GetChildNode("body")->GetChildNode("arm")->GetChildNode("forearm"));
+	SceneNode *swordNode = dynamic_cast<SceneNode*>(m_worldNode->GetChildNode("body")->GetChildNode("arm")->GetChildNode("forearm")->GetChildNode("sword"));
+
+	//Initial Arm Transformation
+	static const glm::mat4 c_armrotate = armNode->GetTransform();
+	static const glm::mat4 c_forearmrotate = forearmNode->GetTransform();
+	static const glm::mat4 c_swordrotate = swordNode->GetTransform();
+
+	for (auto iter : all_player_commands_block)
+	{
+		if (player_commands[iter])
+		{
+			block_state = BLOCK_STATE::BLOCK;
+			blockTarget = iter;
+			break;
+		}
+		block_state = BLOCK_STATE::IDLE;
+	}
+
+	switch (block_state)
+	{
+	case BLOCK_STATE::IDLE:
+		if (swordAngle <= 0.f)
+		{
+			swordAngle = 0.f;
+			swordNode->SetTransform(c_swordrotate);
+		}
+		else
+		{
+			swordAngle -= dt / blockTime * swordBlockAngle;
+			swordNode->Rotate(-dt / blockTime * swordBlockAngle, glm::vec3(1, 0, 0));
+		}
+		if (-0.5f < armAngle && armAngle < 0.5f)
+		{
+			armAngle = 0.f;
+			armNode->SetTransform(c_armrotate);
+		}
+		else if (armAngle >= 0.5f)
+		{
+			armAngle -= dt / blockTime * swordBlockAngle;
+			armNode->Rotate(-dt / blockTime * swordBlockAngle, glm::vec3(1, 0, 0));
+			if (armAngle < 0.5f)
+				armAngle = 0.f;
+		}
+		else if (armAngle <= -0.5f)
+		{
+			armAngle += dt / blockTime * swordBlockAngle;
+			armNode->Rotate(dt / blockTime * swordBlockAngle, glm::vec3(1, 0, 0));
+			if (armAngle > -0.5f)
+				armAngle = 0.f;
+		}
+		break;
+	case BLOCK_STATE::BLOCK:
+		if (swordAngle < swordBlockAngle)
+		{
+			swordAngle += dt / blockTime * swordBlockAngle;
+			swordNode->Rotate(dt / blockTime * swordBlockAngle, glm::vec3(1, 0, 0));
+		}
+		float targetAngle;
+		switch (blockTarget)
+		{
+		case PLAYER_COMMANDS::BLOCK_UP:
+			targetAngle = armBlockUpAngle;
+			break;
+		case PLAYER_COMMANDS::BLOCK_MID:
+			targetAngle = armBlockMidAngle;
+			break;
+		case PLAYER_COMMANDS::BLOCK_DOWN:
+			targetAngle = armBlockDownAngle;
+			break;
+		}
+		int direction = signbit(targetAngle - armAngle) ? -1 : 1;
+		if (armAngle < targetAngle - 0.5f || targetAngle + 0.5f < armAngle)
+		{
+			armAngle += direction * dt / blockTime * swordBlockAngle;
+			armNode->Rotate(direction * dt / blockTime * swordBlockAngle, glm::vec3(1, 0, 0));
+			switch (direction)
+			{
+			case -1:
+				if (armAngle < targetAngle + 0.5f) armAngle = targetAngle;
+				break;
+			case 1:
+				if (armAngle > targetAngle - 0.5f) armAngle = targetAngle;
+				break;
+			}
+		}
+		break;
+	}
+}
+
 void MyModel::playerMoveFSM(double dt)
 {
 	//Get Nodes
@@ -409,10 +539,10 @@ void MyModel::playerMoveFSM(double dt)
 	}
 }
 
-float distancebetween,AiPosition;
+float distancebetween;
 bool close = false;
 bool idlemovement = true;
-static int chance = 33;
+static int chance = 25;
 
 void MyModel::aiMoveFSM(double dt)
 {
@@ -429,35 +559,21 @@ void MyModel::aiMoveFSM(double dt)
 			{
 				//Get the distance between the player and the AI
 				distancebetween = AiTorsoNode->GetTransform()[3][0] - torsoNode->GetTransform()[3][0];
-				AiPosition = AiTorsoNode->GetTransform()[3][0];
-				std::cout << AiPosition << std::endl;
+
 				//Changing of boolean
-				if (distancebetween < 500.f)
-				{
-					close = true;
-					idlemovement = false;
-					if (AiPosition < 1538.f)
-					{
-						ai_leg_state = LEG_STATE::RETRACTING;
-						ai_legTimer = 0.f;
-					}
-				}
-				else if (distancebetween < 1000.f) // Move right
+				if (distancebetween < 1000.f)
 				{
 					
 					close = true;
 					idlemovement = false;
 
-					if (AiPosition < 1538.f)
+					if (rand() % 100 <= chance)
 					{
-						if (rand() % 100 <= chance)
-						{
-							ai_leg_state = LEG_STATE::RETRACTING;
-							ai_legTimer = 0.f;
-						}
+						ai_leg_state = LEG_STATE::RETRACTING;
+						ai_legTimer = 0.f;
 					}
 				}
-				else if (distancebetween > 1500.f) // Move left
+				else if (distancebetween > 1500.f)
 				{
 					close = false;
 					idlemovement = false;

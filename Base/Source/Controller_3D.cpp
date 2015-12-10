@@ -32,6 +32,9 @@ void Controller_3D::Update()
 	if (IsKeyPressed('J')) model->SetCommands(MyModel::PLAYER_COMMANDS::ATTACK_UP);
 	if (IsKeyPressed('K')) model->SetCommands(MyModel::PLAYER_COMMANDS::ATTACK_MID);
 	if (IsKeyPressed('L')) model->SetCommands(MyModel::PLAYER_COMMANDS::ATTACK_DOWN);
+	if (IsKeyPressed('U')) model->SetCommands(MyModel::PLAYER_COMMANDS::BLOCK_UP);
+	if (IsKeyPressed('I')) model->SetCommands(MyModel::PLAYER_COMMANDS::BLOCK_MID);
+	if (IsKeyPressed('O')) model->SetCommands(MyModel::PLAYER_COMMANDS::BLOCK_DOWN);
 	if (IsKeyPressed('A')) model->SetCommands(MyModel::PLAYER_COMMANDS::MOVE_BACKWARD);
 	if (IsKeyPressed('D')) model->SetCommands(MyModel::PLAYER_COMMANDS::MOVE_FORWARD);
 
