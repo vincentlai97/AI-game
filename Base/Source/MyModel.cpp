@@ -409,10 +409,10 @@ void MyModel::playerMoveFSM(double dt)
 	}
 }
 
-float distancebetween;
+float distancebetween,AiPosition;
 bool close = false;
 bool idlemovement = true;
-static int chance = 25;
+static int chance = 33;
 
 void MyModel::aiMoveFSM(double dt)
 {
@@ -429,21 +429,35 @@ void MyModel::aiMoveFSM(double dt)
 			{
 				//Get the distance between the player and the AI
 				distancebetween = AiTorsoNode->GetTransform()[3][0] - torsoNode->GetTransform()[3][0];
-
+				AiPosition = AiTorsoNode->GetTransform()[3][0];
+				std::cout << AiPosition << std::endl;
 				//Changing of boolean
-				if (distancebetween < 1000.f)
+				if (distancebetween < 500.f)
 				{
-					
 					close = true;
 					idlemovement = false;
-
-					if (rand() % 100 <= chance)
+					if (AiPosition < 1538.f)
 					{
 						ai_leg_state = LEG_STATE::RETRACTING;
 						ai_legTimer = 0.f;
 					}
 				}
-				else if (distancebetween > 1500.f)
+				else if (distancebetween < 1000.f) // Move right
+				{
+					
+					close = true;
+					idlemovement = false;
+
+					if (AiPosition < 1538.f)
+					{
+						if (rand() % 100 <= chance)
+						{
+							ai_leg_state = LEG_STATE::RETRACTING;
+							ai_legTimer = 0.f;
+						}
+					}
+				}
+				else if (distancebetween > 1500.f) // Move left
 				{
 					close = false;
 					idlemovement = false;
